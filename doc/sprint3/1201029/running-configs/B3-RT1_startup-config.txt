@@ -1,0 +1,144 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname Router
+!
+!
+!
+!
+ip dhcp excluded-address 172.16.141.1
+ip dhcp excluded-address 172.16.141.65
+ip dhcp excluded-address 172.16.141.129
+ip dhcp excluded-address 172.16.141.192
+!
+ip dhcp pool B3-Floor0
+ network 172.16.141.0 255.255.255.192
+ default-router 172.16.141.1
+ip dhcp pool B3-Floor1
+ network 172.16.141.64 255.255.255.192
+ default-router 172.16.141.65
+ip dhcp pool B3-Wifi
+ network 172.16.141.128 255.255.255.192
+ default-router 172.16.141.129
+ip dhcp pool B3-VoIP
+ network 172.16.141.128 255.255.255.192
+ default-router 172.16.141.191
+ option 150 ip 172.16.141.193
+ip dhcp pool VoIP
+ network 172.16.141.160 255.255.255.224
+ default-router 172.16.141.192
+ option 150 ip 172.16.141.192
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2811/K9 sn FTX1017SKUT-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/2/0
+ no ip address
+!
+interface GigabitEthernet0/2/0.1
+ encapsulation dot1Q 211
+ ip address 172.16.141.1 255.255.255.192
+!
+interface GigabitEthernet0/2/0.2
+ encapsulation dot1Q 212
+ ip address 172.16.141.65 255.255.255.192
+!
+interface GigabitEthernet0/2/0.3
+ encapsulation dot1Q 213
+ ip address 172.16.141.129 255.255.255.192
+!
+interface GigabitEthernet0/2/0.4
+ encapsulation dot1Q 214
+ ip address 172.16.141.193 255.255.255.224
+!
+interface GigabitEthernet0/2/0.5
+ encapsulation dot1Q 215
+ ip address 172.16.141.225 255.255.255.224
+!
+interface GigabitEthernet0/3/0
+ ip address 172.16.136.3 255.255.255.128
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ network 172.16.136.0 0.0.0.127 area 0
+ network 172.16.141.0 0.0.0.255 area 3
+!
+ip classless
+!
+ip flow-export version 9
+!
+!
+!
+no cdp run
+!
+!
+!
+!
+!
+!
+telephony-service
+ max-ephones 25
+ max-dn 25
+ ip source-address 172.16.141.192 port 2000
+ auto assign 1 to 25
+!
+ephone-dn 1
+ number 945073
+!
+ephone-dn 2
+ number 945074
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+

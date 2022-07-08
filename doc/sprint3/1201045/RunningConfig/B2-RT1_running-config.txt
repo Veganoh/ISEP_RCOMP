@@ -1,0 +1,222 @@
+!
+version 15.1
+no service timestamps log datetime msec
+no service timestamps debug datetime msec
+no service password-encryption
+!
+hostname Router
+!
+!
+!
+!
+ip dhcp excluded-address 172.16.140.1
+ip dhcp excluded-address 172.16.140.129
+ip dhcp excluded-address 172.16.140.193
+ip dhcp excluded-address 172.16.140.241
+!
+ip dhcp pool B2-Floor0
+ network 172.16.140.192 255.255.255.224
+ default-router 172.16.140.193
+ dns-server 172.16.140.226
+ domain-name ns.building-2.rcomp-21-22-dc-g3
+ip dhcp pool B2-Floor1
+ network 172.16.140.128 255.255.255.192
+ default-router 172.16.140.129
+ dns-server 172.16.140.226
+ domain-name ns.building-2.rcomp-21-22-dc-g3
+ip dhcp pool B2-Wifi
+ network 172.16.140.0 255.255.255.128
+ default-router 172.16.140.1
+ dns-server 172.16.140.226
+ domain-name ns.building-2.rcomp-21-22-dc-g3
+ip dhcp pool B2-VoIP
+ network 172.16.140.240 255.255.255.240
+ option 150 ip 172.16.140.241
+ dns-server 172.16.140.226
+ domain-name ns.building-2.rcomp-21-22-dc-g3
+!
+!
+!
+no ip cef
+no ipv6 cef
+!
+!
+!
+!
+license udi pid CISCO2811/K9 sn FTX1017E2IX-
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+spanning-tree mode pvst
+!
+!
+!
+!
+!
+!
+interface FastEthernet0/0
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface FastEthernet0/1
+ no ip address
+ duplex auto
+ speed auto
+ shutdown
+!
+interface GigabitEthernet0/2/0
+ no ip address
+!
+interface GigabitEthernet0/2/0.1
+ encapsulation dot1Q 206
+ ip address 172.16.140.1 255.255.255.128
+ ip access-group LOCAL-WIFI in
+!
+interface GigabitEthernet0/2/0.2
+ encapsulation dot1Q 207
+ ip address 172.16.140.129 255.255.255.192
+ ip access-group LOCAL-FLOOR1 in
+!
+interface GigabitEthernet0/2/0.3
+ encapsulation dot1Q 208
+ ip address 172.16.140.193 255.255.255.224
+ ip access-group LOCAL-FLOOR0 in
+!
+interface GigabitEthernet0/2/0.4
+ encapsulation dot1Q 209
+ ip address 172.16.140.225 255.255.255.240
+ ip access-group LOCAL-DMZ in
+ ip nat inside
+!
+interface GigabitEthernet0/2/0.5
+ encapsulation dot1Q 210
+ ip address 172.16.140.241 255.255.255.240
+ ip access-group LOCAL-VOIP in
+!
+interface GigabitEthernet0/3/0
+ ip address 172.16.136.2 255.255.255.128
+ ip access-group BACKBONE in
+ ip nat outside
+!
+interface Vlan1
+ no ip address
+ shutdown
+!
+router ospf 1
+ log-adjacency-changes
+ network 172.16.136.0 0.0.0.127 area 0
+ network 172.16.140.0 0.0.0.255 area 2
+!
+ip nat inside source static udp 172.16.140.226 53 172.16.136.2 53 
+ip nat inside source static tcp 172.16.140.226 53 172.16.136.2 53 
+ip nat inside source static tcp 172.16.140.227 80 172.16.136.2 80 
+ip nat inside source static tcp 172.16.140.227 443 172.16.136.2 443 
+ip classless
+!
+ip flow-export version 9
+!
+!
+ip access-list extended BACKBONE
+ deny ip 172.16.140.0 0.0.0.255 any
+ permit icmp any any
+ permit tcp any 172.16.140.224 0.0.0.15 eq www
+ permit tcp any 172.16.140.224 0.0.0.15 eq 443
+ permit tcp any 172.16.140.224 0.0.0.15 eq domain
+ permit udp any 172.16.140.224 0.0.0.15 eq domain
+ deny ip any 172.16.140.224 0.0.0.15
+ permit ospf any host 172.16.136.2
+ permit tcp any host 172.16.136.2 eq www
+ permit tcp any host 172.16.136.2 eq 443
+ permit tcp any host 172.16.136.2 eq domain
+ permit udp any host 172.16.136.2 eq domain
+ permit tcp any host 172.16.136.2 eq 1028
+ permit tcp any host 172.16.136.2 eq 1720
+ permit tcp any eq 1720 host 172.16.136.2
+ deny ip any host 172.16.136.2
+ permit ip any any
+ip access-list extended LOCAL-FLOOR1
+ permit icmp 172.16.140.128 0.0.0.63 any
+ permit ip host 0.0.0.0 host 255.255.255.255
+ deny ip any host 172.16.140.129
+ permit ip 172.16.140.128 0.0.0.63 any
+ip access-list extended LOCAL-FLOOR0
+ permit icmp 172.16.140.192 0.0.0.31 any
+ permit ip host 0.0.0.0 host 255.255.255.255
+ deny ip any host 172.16.140.193
+ permit ip 172.16.140.192 0.0.0.31 any
+ip access-list extended LOCAL-WIFI
+ permit icmp 172.16.140.0 0.0.0.127 any
+ permit ip host 0.0.0.0 host 255.255.255.255
+ deny ip any host 172.16.140.1
+ permit ip 172.16.140.0 0.0.0.127 any
+ip access-list extended LOCAL-VOIP
+ permit ip host 0.0.0.0 host 255.255.255.255
+ permit tcp any host 172.16.140.241 eq 2000
+ permit tcp any host 172.16.140.241 eq 1028
+ permit tcp any host 172.16.140.241 eq 1720
+ permit tcp any eq 1720 host 172.16.140.241
+ deny ip any host 172.16.140.241
+ permit ip 172.16.140.240 0.0.0.15 any
+!
+!
+!
+!
+!
+!
+dial-peer voice 1 voip
+ destination-pattern 1...
+ session target ipv4:172.16.136.1
+!
+dial-peer voice 3 voip
+ destination-pattern 3...
+ session target ipv4:172.16.136.3
+!
+dial-peer voice 4 voip
+ destination-pattern 4...
+ session target ipv4:172.16.136.4
+!
+telephony-service
+ max-ephones 12
+ max-dn 12
+ ip source-address 172.16.140.241 port 2000
+ auto assign 1 to 12
+!
+ephone-dn 1
+ number 2001
+!
+ephone-dn 2
+ number 2002
+!
+ephone 1
+ device-security-mode none
+ mac-address 0004.9ABB.3839
+ type 7960
+ button 1:1
+!
+ephone 2
+ device-security-mode none
+ mac-address 0030.F210.2689
+ type 7960
+ button 1:2
+!
+line con 0
+!
+line aux 0
+!
+line vty 0 4
+ login
+!
+!
+!
+end
+
